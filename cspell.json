@@ -36,7 +36,8 @@
         "Websitename",
         "uncaffeinated",
         "Pugh",
-        "Curicó"
+        "Curicó",
+        "describedby"
     ],
     "ignorePaths": [
         "docs/demos/1-simple/index.html",
