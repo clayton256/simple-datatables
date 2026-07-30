@@ -9,6 +9,7 @@ import {
 } from "../helpers"
 import {
     cellType,
+    dataRowType,
     rowRenderType,
     elementNodeType
 } from "../types"
@@ -28,48 +29,55 @@ import {menuItemType, dataType, EditorOptions} from "./types"
  * @param {Object} options User config
  */
 export class Editor {
-    menuOpen: boolean
+    menuOpen!: boolean
 
-    containerDOM: HTMLElement
+    containerDOM!: HTMLElement
 
-    data: dataType
+    data!: dataType
 
-    disabled: boolean
+    disabled!: boolean
 
     dt: DataTable
 
-    editing: boolean
+    editing!: boolean
 
-    editingCell: boolean
+    editingCell!: boolean
 
-    editingRow: boolean
+    editingRow!: boolean
 
-    event: Event
+    event!: Event
 
-    events: { [key: string]: () => void}
+    events!: {
+        keydown: (event: KeyboardEvent) => void
+        click: (event: MouseEvent) => void
+        context?: (event: MouseEvent) => void
+        updateMenu?: () => void
+        dismissMenu?: (event: Event) => void
+        reset?: () => void
+    }
 
-    initialized: boolean
+    initialized!: boolean
 
-    limits: {x: number, y: number}
+    limits!: {x: number, y: number}
 
-    menuDOM: HTMLElement
+    menuDOM!: HTMLElement
 
-    modalDOM: HTMLElement | false
+    modalDOM!: HTMLElement | false
 
     options: EditorOptions
 
-    originalRowRender: rowRenderType | false
+    originalRowRender!: rowRenderType | false
 
-    rect: {width: number, height: number}
+    rect!: {width: number, height: number}
 
-    wrapperDOM: HTMLElement
+    wrapperDOM!: HTMLElement
 
-    constructor(dataTable: DataTable, options = {}) {
+    constructor(dataTable: DataTable, options: EditorOptions = {}) {
         this.dt = dataTable
         this.options = {
             ...defaultConfig,
             ...options
-        }
+        } as EditorOptions
     }
 
     /**
@@ -80,11 +88,11 @@ export class Editor {
         if (this.initialized) {
             return
         }
-        this.options.classes.editable?.split(" ").forEach(className => this.dt.wrapperDOM.classList.add(className))
+        this.options.classes!.editable!.split(" ").forEach(className => this.dt.wrapperDOM.classList.add(className))
         if (this.options.inline) {
             this.originalRowRender = this.dt.options.rowRender
             this.dt.options.rowRender = (row, tr, index) => {
-                let newTr = this.rowRender(row, tr, index)
+                let newTr: elementNodeType | void = this.rowRender(row, tr, index)
                 if (this.originalRowRender) {
                     newTr = this.originalRowRender(row, newTr, index)
                 }
@@ -93,30 +101,30 @@ export class Editor {
         }
         if (this.options.contextMenu) {
             this.containerDOM = createElement("div", {
-                id: this.options.classes.container
+                id: this.options.classes!.container!
             })
             this.wrapperDOM = createElement("div", {
-                class: this.options.classes.wrapper
+                class: this.options.classes!.wrapper!
             })
             this.menuDOM = createElement("ul", {
-                class: this.options.classes.menu
+                class: this.options.classes!.menu!
             })
             if (this.options.menuItems && this.options.menuItems.length) {
-                this.options.menuItems.forEach((item: menuItemType) => {
+                this.options.menuItems!.forEach((item: menuItemType) => {
                     const li = createElement("li", {
-                        class: item.separator ? this.options.classes.separator : this.options.classes.item
+                        class: item.separator ? this.options.classes!.separator! : this.options.classes!.item!
                     })
                     if (!item.separator) {
                         const a = createElement("a", {
-                            class: this.options.classes.action,
+                            class: this.options.classes!.action!,
                             href: item.url || "#",
-                            html: typeof item.text === "function" ? item.text(this) : item.text
+                            html: (typeof item.text === "function" ? item.text(this) : item.text) || ""
                         })
                         li.appendChild(a)
                         if (item.action && typeof item.action === "function") {
                             a.addEventListener("click", (event: Event) => {
                                 event.preventDefault()
-                                item.action(this, event)
+                                item.action!(this, event)
                             })
                         }
                     }
@@ -132,6 +140,12 @@ export class Editor {
         this.editing = false
         this.editingRow = false
         this.editingCell = false
+        this.disabled = false
+        this.modalDOM = false
+        this.limits = {x: 0,
+            y: 0}
+        this.rect = {width: 0,
+            height: 0}
         this.bindEvents()
         setTimeout(() => {
             this.initialized = true
@@ -149,20 +163,20 @@ export class Editor {
             click: this.click.bind(this)
         }
         // listen for click / double-click
-        this.dt.dom.addEventListener(this.options.clickEvent, this.events.click)
+        this.dt.dom.addEventListener(this.options.clickEvent!, this.events.click as EventListener)
         // listen for right-click
-        document.addEventListener("keydown", this.events.keydown)
+        document.addEventListener("keydown", this.events.keydown as EventListener)
 
         if (this.options.contextMenu) {
             this.events.context = this.context.bind(this)
             this.events.updateMenu = this.updateMenu.bind(this)
             this.events.dismissMenu = this.dismissMenu.bind(this)
-            this.events.reset = debounce(() => this.events.updateMenu(), 50)
+            this.events.reset = debounce(() => this.events.updateMenu!(), 50)
 
             // listen for right-click
-            this.dt.dom.addEventListener("contextmenu", this.events.context)
+            this.dt.dom.addEventListener("contextmenu", this.events.context as EventListener)
             // listen for click everywhere except the menu
-            document.addEventListener("click", this.events.dismissMenu)
+            document.addEventListener("click", this.events.dismissMenu as EventListener)
             // Reset contextmenu on browser window changes
             window.addEventListener("resize", this.events.reset)
             window.addEventListener("scroll", this.events.reset)
@@ -213,7 +227,7 @@ export class Editor {
             return
         }
         if (this.editing && this.data && this.editingCell) {
-            const inputSelector = classNamesToSelector(this.options.classes.input)
+            const inputSelector = classNamesToSelector(this.options.classes!.input!)
             const input = this.modalDOM ?
                 (this.modalDOM.querySelector(`input${inputSelector}[type=text]`) as HTMLInputElement) :
                 (this.dt.wrapperDOM.querySelector(`input${inputSelector}[type=text]`) as HTMLInputElement)
@@ -233,10 +247,10 @@ export class Editor {
      * @return {Void}
      */
     keydown(event: KeyboardEvent) {
-        const inputSelector = classNamesToSelector(this.options.classes.input)
+        const inputSelector = classNamesToSelector(this.options.classes!.input!)
         if (this.modalDOM) {
             if (event.key === "Escape") { // close button
-                if (this.options.cancelModal(this)) {
+                if (this.options.cancelModal!(this)) {
                     this.closeModal()
                 }
             } else if (event.key === "Enter") { // save button
@@ -246,7 +260,7 @@ export class Editor {
                     this.saveCell(input.value)
                 } else {
                     const values = (Array.from(this.modalDOM.querySelectorAll(`input${inputSelector}[type=text]`)) as HTMLInputElement[]).map(input => input.value.trim())
-                    this.saveRow(values, this.data.row)
+                    this.saveRow(values, this.data.row!)
                 }
             }
         } else if (this.editing && this.data) {
@@ -257,14 +271,14 @@ export class Editor {
                     this.saveCell(input.value)
                 } else if (this.editingRow) {
                     const values = (Array.from(this.dt.wrapperDOM.querySelectorAll(`input${inputSelector}[type=text]`)) as HTMLInputElement[]).map(input => input.value.trim())
-                    this.saveRow(values, this.data.row)
+                    this.saveRow(values, this.data.row!)
                 }
             } else if (event.key === "Escape") {
                 // Escape key reverts
                 if (this.editingCell) {
-                    this.saveCell(this.data.content)
+                    this.saveCell(this.data.content!)
                 } else if (this.editingRow) {
-                    this.saveRow(null, this.data.row)
+                    this.saveRow(null, this.data.row!)
                 }
             }
         }
@@ -277,11 +291,11 @@ export class Editor {
      */
     editCell(td: HTMLTableCellElement) {
         const columnIndex = visibleToColumnIndex(td.cellIndex, this.dt.columns.settings)
-        if (this.options.excludeColumns.includes(columnIndex)) {
+        if (this.options.excludeColumns!.includes(columnIndex)) {
             this.closeMenu()
             return
         }
-        const rowIndex = parseInt(td.parentElement.dataset.index, 10)
+        const rowIndex = parseInt(td.parentElement!.dataset.index!, 10)
         const row = this.dt.data.data[rowIndex]
         const cell = row.cells[columnIndex]
 
@@ -302,36 +316,36 @@ export class Editor {
     }
 
     editCellModal() {
-        const cell = this.data.cell
-        const columnIndex = this.data.columnIndex
-        const label = this.dt.data.headings[columnIndex].text || String(this.dt.data.headings[columnIndex].data)
+        const cell = this.data.cell!
+        const columnIndex = this.data.columnIndex!
+        const label = (this.dt.data.headings[columnIndex].text || String(this.dt.data.headings[columnIndex].data)) as string
         const template = [
-            `<div class='${this.options.classes.inner}'>`,
-            `<div class='${this.options.classes.header}'>`,
-            `<h4>${this.options.labels.editCell}</h4>`,
-            `<button class='${this.options.classes.close}' type='button' data-editor-cancel>${this.options.labels.closeX}</button>`,
+            `<div class='${this.options.classes!.inner!}'>`,
+            `<div class='${this.options.classes!.header!}'>`,
+            `<h4>${this.options.labels!.editCell!}</h4>`,
+            `<button class='${this.options.classes!.close!}' type='button' data-editor-cancel>${this.options.labels!.closeX!}</button>`,
             " </div>",
-            `<div class='${this.options.classes.block}'>`,
-            `<form class='${this.options.classes.form}'>`,
-            `<div class='${this.options.classes.row}'>`,
-            `<label class='${this.options.classes.label}'>${escapeText(label)}</label>`,
-            `<input class='${this.options.classes.input}' value='${escapeText(cellToText(cell))}' type='text'>`,
+            `<div class='${this.options.classes!.block!}'>`,
+            `<form class='${this.options.classes!.form!}'>`,
+            `<div class='${this.options.classes!.row!}'>`,
+            `<label class='${this.options.classes!.label!}'>${escapeText(label)}</label>`,
+            `<input class='${this.options.classes!.input!}' value='${escapeText(cellToText(cell))}' type='text'>`,
             "</div>",
-            `<div class='${this.options.classes.row}'>`,
-            `<button class='${this.options.classes.cancel}' type='button' data-editor-cancel>${this.options.labels.cancel}</button>`,
-            `<button class='${this.options.classes.save}' type='button' data-editor-save>${this.options.labels.save}</button>`,
+            `<div class='${this.options.classes!.row!}'>`,
+            `<button class='${this.options.classes!.cancel!}' type='button' data-editor-cancel>${this.options.labels!.cancel!}</button>`,
+            `<button class='${this.options.classes!.save!}' type='button' data-editor-save>${this.options.labels!.save!}</button>`,
             "</div>",
             "</form>",
             "</div>",
             "</div>"
         ].join("")
         const modalDOM = createElement("div", {
-            class: this.options.classes.modal,
+            class: this.options.classes!.modal!,
             html: template
         })
         this.modalDOM = modalDOM
         this.openModal()
-        const inputSelector = classNamesToSelector(this.options.classes.input)
+        const inputSelector = classNamesToSelector(this.options.classes!.input!)
         const input = (modalDOM.querySelector(`input${inputSelector}[type=text]`) as HTMLInputElement)
         input.focus()
         input.selectionStart = input.selectionEnd = input.value.length
@@ -343,7 +357,7 @@ export class Editor {
             }
             if (target.hasAttribute("data-editor-cancel")) { // cancel button
                 event.preventDefault()
-                if (this.options.cancelModal(this)) {
+                if (this.options.cancelModal!(this)) {
                     this.closeModal()
                 }
             } else if (target.hasAttribute("data-editor-save")) { // save button
@@ -361,9 +375,9 @@ export class Editor {
      * @return {Void}
      */
     saveCell(value: string) {
-        const oldData = this.data.content
+        const oldData = this.data.content!
         // Get the type of that column
-        const type = this.dt.columns.settings[this.data.columnIndex].type || this.dt.options.type
+        const type = this.dt.columns.settings[this.data.columnIndex!].type || this.dt.options.type
         const stringValue = value.trim()
         let cell
         if (type === "number") {
@@ -388,18 +402,18 @@ export class Editor {
         } else if (type === "string") {
             cell = {data: value}
         } else if (type === "date") {
-            const format = this.dt.columns.settings[this.data.columnIndex].format || this.dt.options.format
+            const format = this.dt.columns.settings[this.data.columnIndex!].format || this.dt.options.format
             cell = {data: value,
                 order: parseDate(String(value), format)}
         } else {
             cell = {data: value}
         }
         // Set the cell content
-        const row = this.dt.data.data[this.data.rowIndex]
-        row.cells[this.data.columnIndex] = cell
+        const row = this.dt.data.data[this.data.rowIndex!]
+        row.cells[this.data.columnIndex!] = cell
         this.closeModal()
-        const rowIndex = this.data.rowIndex
-        const columnIndex = this.data.columnIndex
+        const rowIndex = this.data.rowIndex!
+        const columnIndex = this.data.columnIndex!
         this.data = {}
         this.dt.update(true)
         this.editing = false
@@ -414,7 +428,7 @@ export class Editor {
      */
     editRow(tr: HTMLElement) {
         if (!tr || tr.nodeName !== "TR" || this.editing) return
-        const rowIndex = parseInt(tr.dataset.index, 10)
+        const rowIndex = parseInt(tr.dataset.index!, 10)
         const row = this.dt.data.data[rowIndex]
         this.data = {
             row: row.cells,
@@ -431,26 +445,26 @@ export class Editor {
     }
 
     editRowModal() {
-        const row = this.data.row
+        const row = this.data.row!
 
         const template = [
-            `<div class='${this.options.classes.inner}'>`,
-            `<div class='${this.options.classes.header}'>`,
-            `<h4>${this.options.labels.editRow}</h4>`,
-            `<button class='${this.options.classes.close}' type='button' data-editor-cancel>${this.options.labels.closeX}</button>`,
+            `<div class='${this.options.classes!.inner!}'>`,
+            `<div class='${this.options.classes!.header!}'>`,
+            `<h4>${this.options.labels!.editRow!}</h4>`,
+            `<button class='${this.options.classes!.close!}' type='button' data-editor-cancel>${this.options.labels!.closeX!}</button>`,
             " </div>",
-            `<div class='${this.options.classes.block}'>`,
-            `<form class='${this.options.classes.form}'>`,
-            `<div class='${this.options.classes.row}'>`,
-            `<button class='${this.options.classes.cancel}' type='button' data-editor-cancel>${this.options.labels.cancel}</button>`,
-            `<button class='${this.options.classes.save}' type='button' data-editor-save>${this.options.labels.save}</button>`,
+            `<div class='${this.options.classes!.block!}'>`,
+            `<form class='${this.options.classes!.form!}'>`,
+            `<div class='${this.options.classes!.row!}'>`,
+            `<button class='${this.options.classes!.cancel!}' type='button' data-editor-cancel>${this.options.labels!.cancel!}</button>`,
+            `<button class='${this.options.classes!.save!}' type='button' data-editor-save>${this.options.labels!.save!}</button>`,
             "</div>",
             "</form>",
             "</div>",
             "</div>"
         ].join("")
         const modalDOM = createElement("div", {
-            class: this.options.classes.modal,
+            class: this.options.classes!.modal!,
             html: template
         })
         const inner = modalDOM.firstElementChild
@@ -464,14 +478,14 @@ export class Editor {
         // Add the inputs for each cell
         row.forEach((cell: cellType, i: number) => {
             const columnSettings = this.dt.columns.settings[i]
-            if ((!columnSettings.hidden || (columnSettings.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
-                const label = this.dt.data.headings[i].text || String(this.dt.data.headings[i].data)
+            if ((!columnSettings.hidden || (columnSettings.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns!.includes(i)) {
+                const label = (this.dt.data.headings[i].text || String(this.dt.data.headings[i].data)) as string
                 form.insertBefore(createElement("div", {
-                    class: this.options.classes.row,
+                    class: this.options.classes!.row!,
                     html: [
-                        `<div class='${this.options.classes.row}'>`,
-                        `<label class='${this.options.classes.label}'>${escapeText(label)}</label>`,
-                        `<input class='${this.options.classes.input}' value='${escapeText(cellToText(cell))}' type='text'>`,
+                        `<div class='${this.options.classes!.row!}'>`,
+                        `<label class='${this.options.classes!.label!}'>${escapeText(label)}</label>`,
+                        `<input class='${this.options.classes!.input!}' value='${escapeText(cellToText(cell))}' type='text'>`,
                         "</div>"
                     ].join("")
                 }), form.lastElementChild)
@@ -480,7 +494,7 @@ export class Editor {
         this.modalDOM = modalDOM
         this.openModal()
         // Grab the inputs
-        const inputSelector = classNamesToSelector(this.options.classes.input)
+        const inputSelector = classNamesToSelector(this.options.classes!.input!)
         const inputs = Array.from(form.querySelectorAll(`input${inputSelector}[type=text]`)) as HTMLInputElement[]
 
         // Close / save
@@ -490,13 +504,13 @@ export class Editor {
                 return
             }
             if (target.hasAttribute("data-editor-cancel")) { // cancel button
-                if (this.options.cancelModal(this)) {
+                if (this.options.cancelModal!(this)) {
                     this.closeModal()
                 }
             } else if (target.hasAttribute("data-editor-save")) { // save button
                 // Save
                 const values = inputs.map((input: HTMLInputElement) => input.value.trim())
-                this.saveRow(values, this.data.row)
+                this.saveRow(values, this.data.row!)
             }
         })
     }
@@ -507,15 +521,15 @@ export class Editor {
      * @param  {Array} data   Cell data
      * @return {Void}
      */
-    saveRow(data: string[], row: cellType[]) {
+    saveRow(data: string[] | null, row: cellType[]) {
         // Store the old data for the emitter
         const oldData = row.map((cell: cellType) => cellToText(cell))
-        const updatedRow = this.dt.data.data[this.data.rowIndex]
+        const updatedRow = this.dt.data.data[this.data.rowIndex!]
 
         if (data) {
             let valueCounter = 0
             updatedRow.cells = row.map((oldItem, colIndex) => {
-                if (this.options.excludeColumns.includes(colIndex) || this.dt.columns.settings[colIndex].hidden) {
+                if (this.options.excludeColumns!.includes(colIndex) || this.dt.columns.settings[colIndex].hidden) {
                     return oldItem
                 }
                 const type = this.dt.columns.settings[colIndex].type || this.dt.options.type
@@ -593,7 +607,7 @@ export class Editor {
      */
     removeRow(tr: HTMLElement) {
         if (!tr || tr.nodeName !== "TR" || this.editing) return
-        const index = parseInt(tr.dataset.index, 10)
+        const index = parseInt(tr.dataset.index!, 10)
         this.dt.rows.remove(index)
         this.closeMenu()
     }
@@ -624,7 +638,7 @@ export class Editor {
         }
         let valid = true
         if (this.editing) {
-            const inputSelector = classNamesToSelector(this.options.classes.input)
+            const inputSelector = classNamesToSelector(this.options.classes!.input!)
             valid = !(target.matches(`input${inputSelector}[type=text]`))
         }
         if (valid) {
@@ -638,7 +652,7 @@ export class Editor {
      */
     openMenu() {
         if (this.editing && this.data && this.editingCell) {
-            const inputSelector = classNamesToSelector(this.options.classes.input)
+            const inputSelector = classNamesToSelector(this.options.classes!.input!)
             const input = this.modalDOM ?
                 (this.modalDOM.querySelector(`input${inputSelector}[type=text]`) as HTMLInputElement) :
                 (this.dt.wrapperDOM.querySelector(`input${inputSelector}[type=text]`) as HTMLInputElement)
@@ -667,12 +681,12 @@ export class Editor {
      * @return {Void}
      */
     destroy() {
-        this.dt.dom.removeEventListener(this.options.clickEvent, this.events.click)
-        this.dt.dom.removeEventListener("contextmenu", this.events.context)
-        document.removeEventListener("click", this.events.dismissMenu)
-        document.removeEventListener("keydown", this.events.keydown)
-        window.removeEventListener("resize", this.events.reset)
-        window.removeEventListener("scroll", this.events.reset)
+        this.dt.dom.removeEventListener(this.options.clickEvent!, this.events.click as EventListener)
+        this.dt.dom.removeEventListener("contextmenu", this.events.context as EventListener)
+        document.removeEventListener("click", this.events.dismissMenu as EventListener)
+        document.removeEventListener("keydown", this.events.keydown as EventListener)
+        window.removeEventListener("resize", this.events.reset as EventListener)
+        window.removeEventListener("scroll", this.events.reset as EventListener)
         if (document.body.contains(this.containerDOM)) {
             document.body.removeChild(this.containerDOM)
         }
@@ -682,21 +696,21 @@ export class Editor {
         this.initialized = false
     }
 
-    rowRender(row, tr, index) {
+    rowRender(row: dataRowType, tr: elementNodeType, index: number): elementNodeType {
         if (!this.data || this.data.rowIndex !== index) {
             return tr
         }
 
         if (this.editingCell) {
             // cell editing
-            const cell = tr.childNodes[columnToVisibleIndex(this.data.columnIndex, this.dt.columns.settings)]
+            const cell = tr.childNodes![columnToVisibleIndex(this.data.columnIndex!, this.dt.columns.settings)] as elementNodeType
             cell.childNodes = [
                 {
                     nodeName: "INPUT",
                     attributes: {
                         type: "text",
-                        value: this.data.content,
-                        class: this.options.classes.input
+                        value: this.data.content!,
+                        class: this.options.classes!.input!
                     }
                 }
             ]
@@ -704,18 +718,18 @@ export class Editor {
             // row editing
 
             // Add the inputs for each cell
-            tr.childNodes.forEach((cell: elementNodeType, i: number) => {
-                const index = visibleToColumnIndex(i, this.dt.columns.settings)
-                const dataCell = row[index]
-                if (!this.options.excludeColumns.includes(index)) {
-                    const cell = tr.childNodes[i]
-                    cell.childNodes = [
+            tr.childNodes!.forEach((cell, i) => {
+                const colIndex = visibleToColumnIndex(i, this.dt.columns.settings)
+                const dataCell = row.cells[colIndex]
+                if (!this.options.excludeColumns!.includes(colIndex)) {
+                    const tableCell = tr.childNodes![i] as elementNodeType
+                    tableCell.childNodes = [
                         {
                             nodeName: "INPUT",
                             attributes: {
                                 type: "text",
                                 value: escapeText(dataCell.text || String(dataCell.data) || ""),
-                                class: this.options.classes.input
+                                class: this.options.classes!.input!
                             }
                         }
                     ]
@@ -728,7 +742,7 @@ export class Editor {
     }
 }
 
-export const makeEditable = function(dataTable: DataTable, options = {}) {
+export const makeEditable = function(dataTable: DataTable, options: EditorOptions = {}) {
     const editor = new Editor(dataTable, options)
     if (dataTable.initialized) {
         editor.init()

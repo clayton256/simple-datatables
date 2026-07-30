@@ -37,7 +37,7 @@ export const defaultConfig = {
         cancel: "Cancel"
     },
 
-    cancelModal: editor => confirm(editor.options.labels.reallyCancel),
+    cancelModal: (editor: Editor) => confirm(editor.options.labels!.reallyCancel),
 
     // edit inline instead of using a modal lay-over for editing content
     inline: true,
@@ -57,22 +57,22 @@ export const defaultConfig = {
     // set the context menu items
     menuItems: [
         {
-            text: (editor: Editor) => editor.options.labels.editCell,
+            text: (editor: Editor) => editor.options.labels!.editCell,
             action: (editor: Editor, _event: Event) => {
                 if (!(editor.event.target instanceof Element)) {
                     return
                 }
-                const cell = editor.event.target.closest("td")
+                const cell = editor.event.target.closest("td")!
                 return editor.editCell(cell)
             }
         },
         {
-            text: (editor: Editor) => editor.options.labels.editRow,
+            text: (editor: Editor) => editor.options.labels!.editRow,
             action: (editor: Editor, _event: Event) => {
                 if (!(editor.event.target instanceof Element)) {
                     return
                 }
-                const row = editor.event.target.closest("tr")
+                const row = editor.event.target.closest("tr")!
                 return editor.editRow(row)
             }
         },
@@ -80,13 +80,13 @@ export const defaultConfig = {
             separator: true
         },
         {
-            text: (editor: Editor) => editor.options.labels.removeRow,
+            text: (editor: Editor) => editor.options.labels!.removeRow,
             action: (editor: Editor, _event: Event) => {
                 if (!(editor.event.target instanceof Element)) {
                     return
                 }
-                if (confirm(editor.options.labels.reallyRemove)) {
-                    const row = editor.event.target.closest("tr")
+                if (confirm(editor.options.labels!.reallyRemove)) {
+                    const row = editor.event.target.closest("tr")!
                     editor.removeRow(row)
                 }
             }

@@ -16,7 +16,7 @@ export const isObject = (val: (string | number | boolean | object | null | undef
  * Check for valid JSON string
  */
 export const isJson = (str: string) => {
-    let t = !1
+    let t
     try {
         t = JSON.parse(str)
     } catch {
@@ -42,7 +42,7 @@ export const createElement = (nodeName: string, attrs?: { [key: string]: string}
     return dom
 }
 
-export const objToText = (obj: nodeType) => {
+export const objToText = (obj: nodeType): string => {
     if (["#text", "#comment"].includes(obj.nodeName)) {
         return (obj as textNodeType).data
     }
@@ -106,7 +106,7 @@ export const columnToVisibleIndex = function(columnIndex: number, columns: colum
  * @param map The `NamedNodeMap` to convert
  */
 export const namedNodeMapToObject = function(map: NamedNodeMap) {
-    const obj = {}
+    const obj: { [key: string]: string } = {}
     if (map) {
         for (const attr of map) {
             obj[attr.name] = attr.value

@@ -5,8 +5,8 @@ import {cellToText, joinWithSpaces} from "./helpers"
 
 
 export const headingsToVirtualHeaderRowDOM = (
-    headings,
-    columnSettings,
+    headings: headerCellType[],
+    columnSettings: columnSettingsType[],
     columnsState: columnsStateType,
     {
         classes,
@@ -35,7 +35,7 @@ export const headingsToVirtualHeaderRowDOM = (
                 return
             }
             const attributes : { [key: string]: string } = heading.attributes ? {...heading.attributes} : {}
-            if (column.sortable && sortable && (!scrollY.length || unhideHeader)) {
+            if (column.sortable && sortable && (!scrollY!.length || unhideHeader)) {
                 if (column.filter) {
                     attributes["data-filterable"] = "true"
                 } else {
@@ -47,18 +47,18 @@ export const headingsToVirtualHeaderRowDOM = (
                 attributes.class = joinWithSpaces(attributes.class, column.headerClass)
             }
             if (columnsState.sort && columnsState.sort.column === index) {
-                const directionClass = columnsState.sort.dir === "asc" ? classes.ascending : classes.descending
+                const directionClass = columnsState.sort.dir === "asc" ? classes!.ascending : classes!.descending
                 attributes.class = joinWithSpaces(attributes.class, directionClass)
                 attributes["aria-sort"] = columnsState.sort.dir === "asc" ? "ascending" : "descending"
             } else if (columnsState.filters[index]) {
-                attributes.class = joinWithSpaces(attributes.class, classes.filterActive)
+                attributes.class = joinWithSpaces(attributes.class, classes!.filterActive)
             }
 
             if (columnsState.widths[index] && !noColumnWidths) {
                 const style = `width: ${columnsState.widths[index]}%;`
                 attributes.style = joinWithSpaces(attributes.style, style)
             }
-            if (scrollY.length && !unhideHeader) {
+            if (scrollY!.length && !unhideHeader) {
                 const style = "padding-bottom: 0;padding-top: 0;border: 0;"
                 attributes.style = joinWithSpaces(attributes.style, style)
             }
@@ -75,7 +75,7 @@ export const headingsToVirtualHeaderRowDOM = (
                 nodeName: "TH",
                 attributes,
                 childNodes:
-                    ((hiddenHeader || scrollY.length) && !unhideHeader) ?
+                    ((hiddenHeader || scrollY!.length) && !unhideHeader) ?
                         [
                             {
                                 nodeName: "#text",
@@ -89,9 +89,9 @@ export const headingsToVirtualHeaderRowDOM = (
                                     nodeName: "BUTTON",
                                     attributes:
                                         column.filter ?
-                                            {class: classes.filter} :
+                                            {class: classes!.filter!} :
                                             {
-                                                class: classes.sorter,
+                                                class: classes!.sorter!,
                                                 "aria-describedby": "sort-hint"
                                             },
                                     childNodes: headerNodes
@@ -99,7 +99,7 @@ export const headingsToVirtualHeaderRowDOM = (
                             ]
             }
         }
-    ).filter((column: (elementNodeType | void)) => column)
+    ).filter((column: elementNodeType | void): column is elementNodeType => Boolean(column))
 })
 
 export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, headings: headerCellType[], rows: rowType[], columnSettings: columnSettingsType[], columnsState: columnsStateType, rowCursor: (number | false), {
@@ -163,10 +163,10 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                             ]
                                     } as elementNodeType
                                     if (!header && !footer && columnsState.widths[cIndex] && !noColumnWidths) {
-                                        td.attributes.style = joinWithSpaces(td.attributes.style, `width: ${columnsState.widths[cIndex]}%;`)
+                                        td.attributes!.style = joinWithSpaces(td.attributes!.style, `width: ${columnsState.widths[cIndex]}%;`)
                                     }
                                     if (column.cellClass) {
-                                        td.attributes.class = joinWithSpaces(td.attributes.class, column.cellClass)
+                                        td.attributes!.class = joinWithSpaces(td.attributes!.class, column.cellClass)
                                     }
                                     if (column.render) {
                                         const renderedCell : (string | elementNodeType | void) = column.render(cell.data, td, index, cIndex)
@@ -175,10 +175,10 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                                 // Convenience method to make it work similarly to what it did up to version 5.
                                                 const node = stringToObj(`<td>${renderedCell}</td>`)
 
-                                                if (node.childNodes.length !== 1 || !["#text", "#comment"].includes(node.childNodes[0].nodeName)) {
+                                                if (node.childNodes!.length !== 1 || !["#text", "#comment"].includes(node.childNodes![0].nodeName)) {
                                                     td.childNodes = node.childNodes
                                                 } else {
-                                                    (td.childNodes[0] as textNodeType).data = renderedCell
+                                                    (td.childNodes![0] as textNodeType).data = renderedCell
                                                 }
 
                                             } else {
@@ -189,10 +189,10 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                     }
                                     return td
                                 }
-                            ).filter((column: (elementNodeType | void)) => column)
+                            ).filter((column: elementNodeType | void): column is elementNodeType => Boolean(column))
                         }
                         if (index === rowCursor) {
-                            tr.attributes.class = joinWithSpaces(tr.attributes.class, classes.cursor)
+                            tr.attributes!.class = joinWithSpaces(tr.attributes!.class, classes!.cursor)
                         }
                         if (rowRender) {
                             const renderedRow : (elementNodeType | void) = rowRender(row, tr, index)
@@ -203,7 +203,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                     if (node.childNodes && (node.childNodes.length !== 1 || !["#text", "#comment"].includes(node.childNodes[0].nodeName))) {
                                         tr.childNodes = node.childNodes
                                     } else {
-                                        (tr.childNodes[0] as textNodeType).data = renderedRow
+                                        (tr.childNodes![0] as textNodeType).data = renderedRow
                                     }
 
                                 } else {
@@ -218,7 +218,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
         ]
     }
 
-    table.attributes.class = joinWithSpaces(table.attributes.class, classes.table)
+    table.attributes!.class = joinWithSpaces(table.attributes!.class, classes!.table)
 
     if (header || footer || renderHeader) {
         const headerRow: elementNodeType = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnsState, {classes,
@@ -232,12 +232,12 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                 nodeName: "THEAD",
                 childNodes: [headerRow]
             }
-            if ((scrollY.length || hiddenHeader) && !unhideHeader) {
+            if ((scrollY!.length || hiddenHeader) && !unhideHeader) {
                 thead.attributes = {
                     style: "height: 0px;"
                 }
             }
-            table.childNodes.unshift(thead)
+            table.childNodes!.unshift(thead)
         }
         if (footer) {
             const footerRow = header ? structuredClone(headerRow) : headerRow
@@ -245,18 +245,18 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                 nodeName: "TFOOT",
                 childNodes: [footerRow]
             }
-            if ((scrollY.length || hiddenHeader) && !unhideHeader) {
+            if ((scrollY!.length || hiddenHeader) && !unhideHeader) {
                 tfoot.attributes = {style: "height: 0px;"}
             }
-            table.childNodes.push(tfoot)
+            table.childNodes!.push(tfoot)
         }
     }
 
-    footers.forEach(foot => table.childNodes.push(foot))
-    captions.forEach(caption => table.childNodes.push(caption))
+    footers.forEach(foot => table.childNodes!.push(foot))
+    captions.forEach(caption => table.childNodes!.push(caption))
 
     if (tabIndex !== false) {
-        table.attributes.tabindex = String(tabIndex)
+        table.attributes!.tabindex = String(tabIndex)
     }
 
     return table

@@ -1,5 +1,6 @@
 // Template for custom layouts
-export const layoutTemplate = (options, dom) => `<div class='${options.classes.top}'>
+import {DataTableConfiguration} from "./types"
+export const layoutTemplate = (options: DataTableConfiguration, dom: HTMLTableElement) => `<div class='${options.classes.top}'>
     ${
     options.paging && options.perPageSelect ?
         `<div class='${options.classes.dropdown}'>

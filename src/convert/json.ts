@@ -15,7 +15,10 @@ interface jsonConvertUserOptions {
  * Convert JSON data to fit the format used in the table.
  */
 export const convertJSON = function(userOptions : jsonConvertUserOptions) {
-    let obj
+    const obj: {headings: string[], data: (string | number | boolean | null | undefined)[][]} = {
+        headings: [],
+        data: []
+    }
     const defaults = {
         data: ""
     }
@@ -36,11 +39,6 @@ export const convertJSON = function(userOptions : jsonConvertUserOptions) {
 
         // Valid JSON string
         if (json) {
-            obj = {
-                headings: [],
-                data: []
-            }
-
             json.forEach((data: { [key: string]: string | number | boolean | null | undefined}, i: number) => {
                 obj.data[i] = []
                 Object.entries(data).forEach(([column, value]) => {
@@ -54,7 +52,7 @@ export const convertJSON = function(userOptions : jsonConvertUserOptions) {
             console.warn("That's not valid JSON!")
         }
 
-        if (obj) {
+        if (obj.data.length) {
             return obj
         }
     }

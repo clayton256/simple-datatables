@@ -17,9 +17,9 @@ import {cellToText} from "./helpers"
 export class Columns {
     dt: DataTable
 
-    settings: columnSettingsType[]
+    settings!: columnSettingsType[]
 
-    _state: columnsStateType
+    _state!: columnsStateType
 
     constructor(dt: DataTable) {
         this.dt = dt
@@ -322,7 +322,7 @@ export class Columns {
                 // Find the most recent row that's already in a group
                 for (let i = rowIndex - 1; i >= 0; i--) {
                     if (rowToGroup.has(i)) {
-                        const groupIndex = rowToGroup.get(i)
+                        const groupIndex = rowToGroup.get(i)!
                         rowGroups[groupIndex].push(rowIndex)
                         rowToGroup.set(rowIndex, groupIndex)
                         return
@@ -437,7 +437,7 @@ export class Columns {
                 }
                 if (this.dt.headerDOM) {
                     // Remove headerDOM for accurate measurements
-                    this.dt.headerDOM.parentElement.removeChild(this.dt.headerDOM)
+                    this.dt.headerDOM.parentElement!.removeChild(this.dt.headerDOM)
                 }
 
                 // Reset widths

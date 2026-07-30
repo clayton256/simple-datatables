@@ -15,7 +15,9 @@ interface csvConvertUserOptions {
  * Convert CSV data to fit the format used in the table.
  */
 export const convertCSV = function(userOptions : csvConvertUserOptions) {
-    let obj
+    const obj: {headings?: string[], data: string[][]} = {
+        data: []
+    }
     const defaults = {
         lineDelimiter: "\n",
         columnDelimiter: ",",
@@ -34,9 +36,6 @@ export const convertCSV = function(userOptions : csvConvertUserOptions) {
 
     if (options.data.length) {
         // Import CSV
-        obj = {
-            data: []
-        }
 
         // Split the string into rows
         const rows : string[] = options.data.split(options.lineDelimiter)
@@ -68,7 +67,7 @@ export const convertCSV = function(userOptions : csvConvertUserOptions) {
             })
         }
 
-        if (obj) {
+        if (obj.data.length) {
             return obj
         }
     }

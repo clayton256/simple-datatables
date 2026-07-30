@@ -9,31 +9,31 @@ import {ColumnFilterOptions} from "./types"
 
 class ColumnFilter {
 
-    addedButtonDOM: boolean
+    addedButtonDOM!: boolean
 
-    menuOpen: boolean
+    menuOpen!: boolean
 
-    buttonDOM: HTMLElement
+    buttonDOM!: HTMLElement
 
     dt: DataTable
 
-    events: { [key: string]: () => void}
+    events!: { [key: string]: (event: Event) => void }
 
-    initialized: boolean
+    initialized!: boolean
 
     options: ColumnFilterOptions
 
-    menuDOM: HTMLElement
+    menuDOM!: HTMLElement
 
-    containerDOM: HTMLElement
+    containerDOM!: HTMLElement
 
-    wrapperDOM: HTMLElement
+    wrapperDOM!: HTMLElement
 
-    limits: {x: number, y: number}
+    limits!: {x: number, y: number}
 
-    rect: {width: number, height: number}
+    rect!: {width: number, height: number}
 
-    event: Event
+    event!: Event
 
     constructor(dataTable: DataTable, options = {}) {
         this.dt = dataTable
@@ -49,18 +49,18 @@ class ColumnFilter {
             return
         }
 
-        const buttonSelector = classNamesToSelector(this.options.classes.button)
+        const buttonSelector = classNamesToSelector(this.options.classes!.button!)!
         let buttonDOM : (HTMLElement | null) = this.dt.wrapperDOM.querySelector(buttonSelector)
         if (!buttonDOM) {
             buttonDOM = createElement(
                 "button",
                 {
-                    class: this.options.classes.button,
+                    class: this.options.classes!.button!,
                     html: "▦"
                 }
             )
             // filter button not part of template (could be default template. We add it to search.)
-            const searchSelector = classNamesToSelector(this.dt.options.classes.search)
+            const searchSelector = classNamesToSelector(this.dt.options.classes.search)!
             const searchWrapper = this.dt.wrapperDOM.querySelector(searchSelector)
             if (searchWrapper) {
                 searchWrapper.appendChild(buttonDOM)
@@ -73,17 +73,17 @@ class ColumnFilter {
 
 
         this.containerDOM = createElement("div", {
-            id: this.options.classes.container
+            id: this.options.classes!.container!
         })
         this.wrapperDOM = createElement("div", {
-            class: this.options.classes.wrapper
+            class: this.options.classes!.wrapper!
         })
         this.menuDOM = createElement("ul", {
-            class: this.options.classes.menu,
+            class: this.options.classes!.menu!,
             html: this.dt.data.headings.map(
                 (heading, index) => {
                     const settings = this.dt.columns.settings[index]
-                    if (this.options.hiddenColumns.includes(index)) {
+                    if (this.options.hiddenColumns!.includes(index)) {
                         return ""
                     }
                     return `<li data-column="${index}">
@@ -144,7 +144,7 @@ class ColumnFilter {
         }
     }
 
-    _click(event: MouseEvent) {
+    _click(event: Event) {
         const target = event.target
         if (!(target instanceof Element)) {
             return
@@ -159,8 +159,9 @@ class ColumnFilter {
             }
             this._openMenu()
             // get the mouse position
-            let x = event.pageX
-            let y = event.pageY
+            const mouseEvent = event as MouseEvent
+            let x = mouseEvent.pageX
+            let y = mouseEvent.pageY
             // check if we're near the right edge of window
             if (x > this.limits.x) {
                 x -= this.rect.width
@@ -172,7 +173,7 @@ class ColumnFilter {
             this.wrapperDOM.style.top = `${y}px`
             this.wrapperDOM.style.left = `${x}px`
         } else if (this.menuDOM.contains(target)) {
-            const menuSelector = classNamesToSelector(this.options.classes.menu)
+            const menuSelector = classNamesToSelector(this.options.classes!.menu!)!
             const li = target.closest(`${menuSelector} > li`) as HTMLElement
             if (!li) {
                 return

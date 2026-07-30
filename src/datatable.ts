@@ -34,71 +34,71 @@ import {createVirtualPagerDOM} from "./virtual_pager_dom"
 
 export class DataTable {
 
-    columns: Columns
+    columns!: Columns
 
-    containerDOM: HTMLDivElement
+    containerDOM!: HTMLDivElement
 
     _currentPage: number
 
-    data: TableDataType
+    data!: TableDataType
 
     _dd: DiffDOM
 
     dom: HTMLTableElement
 
-    _events: { [key: string]: ((...args) => void)[]}
+    _events: { [key: string]: ((...args: any[]) => void)[] }
 
     hasHeadings: boolean
 
     hasRows: boolean
 
-    headerDOM: HTMLDivElement
+    headerDOM?: HTMLDivElement
 
     _initialHTML: string
 
     initialized: boolean
 
-    _label: HTMLElement
+    _label!: HTMLElement
 
-    lastPage: number
+    lastPage!: number
 
-    _listeners: { [key: string]: () => void}
+    _listeners: { [key: string]: () => void }
 
     onFirstPage: boolean
 
-    onLastPage: boolean
+    onLastPage!: boolean
 
     options: DataTableConfiguration
 
-    _pagerDOMs: HTMLElement[]
+    _pagerDOMs!: HTMLElement[]
 
-    _pagerContainers: HTMLElement[]
+    _pagerContainers!: HTMLElement[]
 
-    _virtualPagerDOM: elementNodeType
+    _virtualPagerDOM!: elementNodeType
 
-    pages: rowType[][]
+    pages!: rowType[][]
 
-    _rect: {width: number, height: number}
+    _rect!: {width: number, height: number}
 
-    rows: Rows
+    rows!: Rows
 
-    _searchData: number[]
+    _searchData!: number[]
 
     _searchQueries: {source: string, terms: string[], columns: (number[] | undefined)}[]
 
-    _tableAttributes: {[key: string]: string}
+    _tableAttributes!: {[key: string]: string}
 
-    _tableFooters: elementNodeType[]
+    _tableFooters!: elementNodeType[]
 
-    _tableCaptions: elementNodeType[]
+    _tableCaptions!: elementNodeType[]
 
-    totalPages: number
+    totalPages!: number
 
-    _virtualDOM: elementNodeType
+    _virtualDOM!: elementNodeType
 
-    _virtualHeaderDOM: elementNodeType
+    _virtualHeaderDOM?: elementNodeType
 
-    wrapperDOM: HTMLElement
+    wrapperDOM!: HTMLElement
 
     constructor(table: HTMLTableElement | string, options: DataTableOptions = {}) {
 
@@ -109,7 +109,7 @@ export class DataTable {
             this.dom = dom
         } else {
             this.dom = document.createElement("table")
-            dom.appendChild(this.dom)
+            dom!.appendChild(this.dom)
         }
 
         const diffDomOptions = {
@@ -134,9 +134,9 @@ export class DataTable {
             diffDomOptions,
             labels,
             classes
-        }
+        } as DataTableConfiguration
 
-        this._initialHTML = this.options.destroyable ? dom.outerHTML : "" // preserve in case of later destruction
+        this._initialHTML = this.options.destroyable ? dom!.outerHTML : "" // preserve in case of later destruction
 
         if (this.options.tabIndex) {
             this.dom.tabIndex = this.options.tabIndex
@@ -228,16 +228,16 @@ export class DataTable {
             })
 
         } else if (selector) {
-            selector.parentElement.removeChild(selector)
+            selector.remove()
         }
 
         const containerSelector = classNamesToSelector(this.options.classes.container)
-        this.containerDOM = this.wrapperDOM.querySelector(containerSelector)
+        this.containerDOM = this.wrapperDOM.querySelector(containerSelector!) as HTMLDivElement
 
         this._pagerDOMs = []
         this._pagerContainers = []
         const paginationSelector = classNamesToSelector(this.options.classes.pagination)
-        Array.from(this.wrapperDOM.querySelectorAll(paginationSelector)).forEach(el => {
+        Array.from(this.wrapperDOM.querySelectorAll(paginationSelector!)).forEach(el => {
             if (!(el instanceof HTMLElement)) {
                 return
             }
@@ -256,10 +256,10 @@ export class DataTable {
 
 
         const infoSelector = classNamesToSelector(this.options.classes.info)
-        this._label = this.wrapperDOM.querySelector(infoSelector)
+        this._label = this.wrapperDOM.querySelector(infoSelector!) as HTMLElement
 
         // Insert in to DOM tree
-        this.dom.parentElement.replaceChild(this.wrapperDOM, this.dom)
+        this.dom.parentElement!.replaceChild(this.wrapperDOM, this.dom)
         this.containerDOM.appendChild(this.dom)
 
         // Store the table dimensions
@@ -358,7 +358,7 @@ export class DataTable {
         }
 
         // Update the info
-        let current = 0
+        let current
 
         let f = 0
         let t = 0
@@ -420,7 +420,7 @@ export class DataTable {
             }
         }
 
-        const hasPagerItems = newPagerVirtualDOM.childNodes.length > 0
+        const hasPagerItems = newPagerVirtualDOM.childNodes!.length > 0
         const diffs = this._dd.diff(this._virtualPagerDOM, newPagerVirtualDOM)
 
         this._pagerDOMs.forEach((pagerDOM: HTMLElement, i: number) => {
@@ -453,7 +453,7 @@ export class DataTable {
     // Render header that is not in the same table element as the remainder
     // of the table. Used for tables with scrollY.
     _renderSeparateHeader() {
-        const container = this.dom.parentElement
+        const container = this.dom.parentElement!
         if (!this.headerDOM) {
             this.headerDOM = document.createElement("div")
             this._virtualHeaderDOM = {
@@ -461,7 +461,7 @@ export class DataTable {
             }
 
         }
-        container.parentElement.insertBefore(this.headerDOM, container)
+        container.parentElement!.insertBefore(this.headerDOM, container)
         let tableVirtualDOM : elementNodeType = {
             nodeName: "TABLE",
             attributes: this._tableAttributes,
@@ -477,8 +477,8 @@ export class DataTable {
 
             ]
         }
-        if (!tableVirtualDOM.attributes.class?.includes(this.options.classes.table)) {
-            tableVirtualDOM.attributes.class = joinWithSpaces(tableVirtualDOM.attributes.class, this.options.classes.table)
+        if (!tableVirtualDOM.attributes!.class?.includes(this.options.classes.table)) {
+            tableVirtualDOM.attributes!.class = joinWithSpaces(tableVirtualDOM.attributes!.class, this.options.classes.table)
         }
         if (this.options.tableRender) {
             const renderedTableVirtualDOM : (elementNodeType | void) = this.options.tableRender(this.data, tableVirtualDOM, "header")
@@ -495,17 +495,17 @@ export class DataTable {
             childNodes: [tableVirtualDOM]
         }
 
-        const diff = this._dd.diff(this._virtualHeaderDOM, newVirtualHeaderDOM)
-        this._dd.apply(this.headerDOM, diff)
+        const diff = this._dd.diff(this._virtualHeaderDOM!, newVirtualHeaderDOM)
+        this._dd.apply(this.headerDOM!, diff)
         this._virtualHeaderDOM = newVirtualHeaderDOM
 
         // Compensate for scrollbars
-        const paddingRight = this.headerDOM.firstElementChild.clientWidth - this.dom.clientWidth
+        const paddingRight = this.headerDOM!.firstElementChild!.clientWidth - this.dom.clientWidth
         if (paddingRight) {
             const paddedVirtualHeaderDOM = structuredClone(this._virtualHeaderDOM)
-            paddedVirtualHeaderDOM.attributes.style = `padding-right: ${paddingRight}px;`
-            const diff = this._dd.diff(this._virtualHeaderDOM, paddedVirtualHeaderDOM)
-            this._dd.apply(this.headerDOM, diff)
+            paddedVirtualHeaderDOM.attributes!.style = `padding-right: ${paddingRight}px;`
+            const diff = this._dd.diff(this._virtualHeaderDOM!, paddedVirtualHeaderDOM)
+            this._dd.apply(this.headerDOM!, diff)
             this._virtualHeaderDOM = paddedVirtualHeaderDOM
         }
 
@@ -523,7 +523,7 @@ export class DataTable {
         // Per page selector
         if (this.options.perPageSelect) {
             const selectorClassSelector = classNamesToSelector(this.options.classes.selector)
-            const selector = this.wrapperDOM.querySelector(selectorClassSelector)
+            const selector = this.wrapperDOM.querySelector(selectorClassSelector!)
             if (selector && selector instanceof HTMLSelectElement) {
                 // Change per page
                 selector.addEventListener("change", () => {
@@ -543,16 +543,14 @@ export class DataTable {
             this.wrapperDOM.addEventListener("input", (event: InputEvent) => {
                 const inputSelector = classNamesToSelector(this.options.classes.input)
                 const target = event.target
-                if (!(target instanceof HTMLInputElement) || !target.matches(inputSelector)) {
+                if (!(target instanceof HTMLInputElement) || !target.matches(inputSelector!)) {
                     return
                 }
                 event.preventDefault()
 
                 const searches: { terms: string[], columns: (number[] | undefined) }[] = []
-                const searchFields: HTMLInputElement[] = Array.from(this.wrapperDOM.querySelectorAll(inputSelector))
-                searchFields.filter(
-                    el => el.value.length
-                ).forEach(
+                const searchFields = Array.from(this.wrapperDOM.querySelectorAll(inputSelector!)).filter((el): el is HTMLInputElement => el instanceof HTMLInputElement && el.value.length > 0)
+                searchFields.forEach(
                     el => {
                         const andSearch = el.dataset.and || this.options.searchAnd
                         const querySeparator = el.dataset.querySeparator || this.options.searchQuerySeparator
@@ -601,15 +599,15 @@ export class DataTable {
             }
 
             if (hyperlink.hasAttribute("data-page")) {
-                this.page(parseInt(hyperlink.getAttribute("data-page"), 10))
+                this.page(parseInt(hyperlink.getAttribute("data-page")!, 10))
                 event.preventDefault()
             } else if (containsClass(hyperlink, this.options.classes.sorter)) {
-                const visibleIndex = Array.from(hyperlink.parentElement.parentElement.children).indexOf(hyperlink.parentElement)
+                const visibleIndex = Array.from(hyperlink.parentElement!.parentElement!.children).indexOf(hyperlink.parentElement!)
                 const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings)
                 this.columns.sort(columnIndex)
                 event.preventDefault()
             } else if (containsClass(hyperlink, this.options.classes.filter)) {
-                const visibleIndex = Array.from(hyperlink.parentElement.parentElement.children).indexOf(hyperlink.parentElement)
+                const visibleIndex = Array.from(hyperlink.parentElement!.parentElement!.children).indexOf(hyperlink.parentElement!)
                 const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings)
                 this.columns.filter(columnIndex)
                 event.preventDefault()
@@ -621,7 +619,7 @@ export class DataTable {
                 if (event.key === "ArrowUp") {
                     event.preventDefault()
                     event.stopPropagation()
-                    let lastRow: rowType
+                    let lastRow: rowType | undefined
                     this.pages[this._currentPage-1].find((row: rowType) => {
                         if (row.index===this.rows.cursor) {
                             return true
@@ -665,7 +663,7 @@ export class DataTable {
             }
             const row = Array.from(this.dom.querySelectorAll("tbody > tr")).find(row => row.contains(target))
             if (row && row instanceof HTMLElement) {
-                this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event, this.dom.matches(":focus"))
+                this.emit("datatable.selectrow", parseInt(row.dataset.index!, 10), event, this.dom.matches(":focus"))
             }
         })
 
@@ -774,7 +772,7 @@ export class DataTable {
             // Check for hidden columns
             this.pages = rows
                 .map((_row, i: number) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
-                .filter((page: {row: dataRowType, index: number}[]) => page)
+                .filter((page): page is rowType[] => page !== null)
         } else {
             this.pages = [rows]
         }
@@ -792,7 +790,7 @@ export class DataTable {
      */
     _fixHeight() {
         if (this.options.fixedHeight) {
-            this.containerDOM.style.height = null
+            this.containerDOM.style.height = ""
             this._rect = this.containerDOM.getBoundingClientRect()
             this.containerDOM.style.height = `${this._rect.height}px`
         }
@@ -1011,7 +1009,7 @@ export class DataTable {
                         attributes = {}
                         cells = row
                     } else {
-                        attributes = row.attributes
+                        attributes = row.attributes ?? {}
                         cells = row.cells
                     }
                     return {
@@ -1041,7 +1039,7 @@ export class DataTable {
 
         if (this.options.searchable) {
             const inputSelector = classNamesToSelector(this.options.classes.input)
-            const inputs: HTMLInputElement[] = Array.from(this.wrapperDOM.querySelectorAll(inputSelector))
+            const inputs = Array.from(this.wrapperDOM.querySelectorAll(inputSelector!)).filter((el): el is HTMLInputElement => el instanceof HTMLInputElement)
             inputs.forEach(el => (el.value = ""))
             this._searchQueries = []
         }
@@ -1088,7 +1086,7 @@ export class DataTable {
         this._dd.apply(tableDOM, diff)
 
         // Open new window
-        const w = window.open()
+        const w = window.open()!
 
         // Append the table to the body
         w.document.body.appendChild(tableDOM)
@@ -1150,11 +1148,11 @@ export class DataTable {
             ]
         }
 
-        this._tableFooters.forEach(footer => newVirtualDOM.childNodes.push(footer))
-        this._tableCaptions.forEach(caption => newVirtualDOM.childNodes.push(caption))
+        this._tableFooters.forEach(footer => newVirtualDOM.childNodes!.push(footer))
+        this._tableCaptions.forEach(caption => newVirtualDOM.childNodes!.push(caption))
 
-        if (!newVirtualDOM.attributes.class?.includes(this.options.classes.table)) {
-            newVirtualDOM.attributes.class = joinWithSpaces(newVirtualDOM.attributes.class, this.options.classes.table)
+        if (!newVirtualDOM.attributes!.class?.includes(this.options.classes.table)) {
+            newVirtualDOM.attributes!.class = joinWithSpaces(newVirtualDOM.attributes!.class, this.options.classes.table)
         }
 
         if (this.options.tableRender) {
@@ -1189,7 +1187,7 @@ export class DataTable {
     /**
      * Fire custom event
      */
-    emit(event: string, ...args) {
+    emit(event: string, ...args: any[]) {
         if (event in this._events === false) return
         for (let i = 0; i < this._events[event].length; i++) {
             this._events[event][i](...args)

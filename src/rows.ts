@@ -56,7 +56,7 @@ export class Rows {
     /**
      * Remove row(s)
      */
-    remove(select: number | number[]) {
+    remove(select: number | number[]): void {
         if (Array.isArray(select)) {
             this.dt.data.data = this.dt.data.data.filter((_row: dataRowType, index: number) => !select.includes(index))
             // We may have emptied the table

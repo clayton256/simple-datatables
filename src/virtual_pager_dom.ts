@@ -27,9 +27,9 @@ const truncate = (paginationListItems: elementNodeType[], currentPage: number, p
     let previousLi: elementNodeType
     const modifiedLis: elementNodeType[] = []
     paginationListItemsToModify.forEach(li => {
-        const pageNumber = parseInt((li.childNodes[0] as elementNodeType).attributes["data-page"], 10)
+        const pageNumber = parseInt((li.childNodes![0] as elementNodeType).attributes!["data-page"], 10)
         if (previousLi) {
-            const previousPageNumber = parseInt((previousLi.childNodes[0] as elementNodeType).attributes["data-page"], 10)
+            const previousPageNumber = parseInt((previousLi.childNodes![0] as elementNodeType).attributes!["data-page"], 10)
             if (pageNumber - previousPageNumber == 2) {
                 modifiedLis.push(paginationListItems[previousPageNumber])
             } else if (pageNumber - previousPageNumber != 1) {
@@ -104,7 +104,7 @@ const paginationListItem = (page: number, label: string, options: DataTableConfi
     ]
 })
 
-export const createVirtualPagerDOM = (onFirstPage: boolean, onLastPage: boolean, currentPage: number, totalPages: number, options) => {
+export const createVirtualPagerDOM = (onFirstPage: boolean, onLastPage: boolean, currentPage: number, totalPages: number, options: DataTableConfiguration) => {
 
     let pagerListItems : elementNodeType[] = []
 

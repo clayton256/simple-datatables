@@ -4,7 +4,12 @@ import {
     columnSettingsType
 } from "./types"
 
-export const readColumnSettings = (columnOptions = [], defaultType, defaultFormat) : [columnSettingsType[], columnsStateType] => {
+type readColumnOptionType = Omit<columnSettingsType, "type"> & {
+    select: number | number[];
+    type?: string;
+}
+
+export const readColumnSettings = (columnOptions: readColumnOptionType[] = [], defaultType: columnSettingsType["type"], defaultFormat: string) : [columnSettingsType[], columnsStateType] => {
 
     let columns: (columnSettingsType | undefined)[] = []
     let sort: (false | {column: number, dir: "asc" | "desc"}) = false
@@ -20,16 +25,16 @@ export const readColumnSettings = (columnOptions = [], defaultType, defaultForma
         columnSelectors.forEach((selector: number) => {
             if (columns[selector]) {
                 if (data.type) {
-                    columns[selector].type = data.type
+                    columns[selector].type = data.type as columnSettingsType["type"]
                 }
             } else {
                 columns[selector] = {
-                    type: data.type || defaultType,
+                    type: (data.type || defaultType) as columnSettingsType["type"],
                     sortable: true,
                     searchable: true
                 }
             }
-            const column = columns[selector]
+            const column = columns[selector]!
 
 
             if (data.render) {
@@ -119,12 +124,12 @@ export const readColumnSettings = (columnOptions = [], defaultType, defaultForma
         {type: defaultType,
             format: defaultType === "date" ? defaultFormat : undefined,
             sortable: true,
-            searchable: true})
+            searchable: true}) as columnSettingsType[]
 
-    const widths = [] // Width are determined later on by measuring on screen.
+    const widths: number[] = [] // Width are determined later on by measuring on screen.
 
     return [
-        columns, {filters,
+        columns as columnSettingsType[], {filters,
             sort,
             widths}
     ]

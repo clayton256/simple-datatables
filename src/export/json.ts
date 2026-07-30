@@ -16,7 +16,7 @@ import {
  interface jsonUserOptions {
    download?: boolean,
    skipColumn?: number[],
-   replacer?: null | ((key, value) => string) | (string | number)[],
+   replacer?: null | ((key: string, value: unknown) => unknown) | (string | number)[],
    space?: number,
    selection?: number | number[],
    filename?: string,
@@ -72,7 +72,7 @@ export const exportJSON = function(dt: DataTable, userOptions: jsonUserOptions =
 
     // Only proceed if we have data
     if (rows.length) {
-        const arr: (void | { [key: string]: cellDataType})[] = []
+        const arr: { [key: string]: cellDataType }[] = []
         rows.forEach((row: cellDataType[], x: number) => {
             arr[x] = arr[x] || {}
             row.forEach((cell: cellDataType, i: number) => {
@@ -81,7 +81,7 @@ export const exportJSON = function(dt: DataTable, userOptions: jsonUserOptions =
         })
 
         // Convert the array of objects to JSON string
-        const str = JSON.stringify(arr, options.replacer, options.space)
+        const str = JSON.stringify(arr, options.replacer as Parameters<typeof JSON.stringify>[1], options.space)
 
         // Download
         if (options.download) {

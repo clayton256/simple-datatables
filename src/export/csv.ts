@@ -94,11 +94,11 @@ export const exportCSV = function(dt: DataTable, userOptions: csvUserOptions = {
                 if (rowspanCarryover.has(csvColumnIndex)) {
                     const carryover = rowspanCarryover.get(csvColumnIndex)
                     // Use the carried over text
-                    csvRow.push(carryover.cellText)
+                    csvRow.push(carryover!.cellText)
 
                     // Decrement remaining rows
-                    carryover.remainingRows--
-                    if (carryover.remainingRows <= 0) {
+                    carryover!.remainingRows--
+                    if (carryover!.remainingRows <= 0) {
                         rowspanCarryover.delete(csvColumnIndex)
                     }
 

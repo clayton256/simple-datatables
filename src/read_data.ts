@@ -108,7 +108,7 @@ const readDOMDataCell = (cell: HTMLElement, columnSettings : columnSettingsType)
         const data = cell.innerText
         cellData = {
             data,
-            order: parseDate(data, columnSettings.format)
+            order: parseDate(data, columnSettings.format!)
         }
         break
     }
@@ -180,7 +180,7 @@ export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
             }
         }
 
-    } else if ([null, undefined].includes(cell)) {
+    } else if (cell === null || cell === undefined) {
         cellData.text = ""
     } else {
         cellData.text = JSON.stringify(cell)
@@ -211,7 +211,7 @@ export const readDOMHeaderCell = (cell: HTMLElement) : headerCellType => {
 
 }
 
-export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | undefined)=undefined, columnSettings, defaultType, defaultFormat) => {
+export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | undefined)=undefined, columnSettings: columnSettingsType[], defaultType: columnSettingsType["type"], defaultFormat: string) => {
 
     const data = {
         data: [] as dataRowType[],
@@ -290,7 +290,7 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
                         settings.hidden = true
                     }
                     if (th.dataset.type && ["number", "string", "html", "date", "boolean", "other"].includes(th.dataset.type)) {
-                        settings.type = th.dataset.type
+                        settings.type = th.dataset.type as columnSettingsType["type"]
                         if (settings.type === "date" && th.dataset.format) {
                             settings.format = th.dataset.format
                         }
@@ -330,7 +330,7 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
                 attributes = {}
                 cells = row
             } else if (row.hasOwnProperty("cells") && Object.keys(row).every(key => ["cells", "attributes"].includes(key))) {
-                attributes = row.attributes
+                attributes = row.attributes ?? {}
                 cells = row.cells
             } else {
                 attributes = {}
@@ -363,9 +363,11 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
                     })
 
                     // Decrement remaining rows
-                    carryover.remainingRows--
-                    if (carryover.remainingRows <= 0) {
-                        rowspanCarryover.delete(cellIndex)
+                    if (carryover) {
+                        carryover.remainingRows--
+                        if (carryover.remainingRows <= 0) {
+                            rowspanCarryover.delete(cellIndex)
+                        }
                     }
 
                     cellIndex++
@@ -438,9 +440,11 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
                         })
 
                         // Decrement remaining rows
-                        carryover.remainingRows--
-                        if (carryover.remainingRows <= 0) {
-                            rowspanCarryover.delete(cellIndex)
+                        if (carryover) {
+                            carryover.remainingRows--
+                            if (carryover.remainingRows <= 0) {
+                                rowspanCarryover.delete(cellIndex)
+                            }
                         }
 
                         cellIndex++

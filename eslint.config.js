@@ -11,39 +11,29 @@ const parser = require("@html-eslint/parser");
 const globals = require("globals");
 const js = require("@eslint/js");
 
-const {
-    FlatCompat,
-} = require("@eslint/eslintrc");
-
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
-});
-
-module.exports = defineConfig([{
-    plugins: {
-        html,
-        "@html-eslint": htmlEslint,
-        "@typescript-eslint": typescriptEslint,
-    },
-
-    languageOptions: {
-        globals: {
-            ...globals.browser,
-            ...globals.mocha,
+module.exports = defineConfig([
+    globalIgnores(["docs/demos/dist/"]),
+    js.configs.recommended,
+    typescriptEslint.configs["flat/eslint-recommended"],
+    ...typescriptEslint.configs["flat/recommended"],
+    {
+        plugins: {
+            html,
+            "@html-eslint": htmlEslint,
+            "@typescript-eslint": typescriptEslint,
         },
 
-        "ecmaVersion": 2021,
-        "sourceType": "module",
-        parserOptions: {},
-    },
+        languageOptions: {
+            globals: {
+                ...globals.browser,
+                ...globals.mocha,
+            },
 
-    extends: compat.extends(
-        "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended",
-    ),
+            "ecmaVersion": 2021,
+            "sourceType": "module",
+            parserOptions: {},
+        },
+
 
     "rules": {
         "accessor-pairs": "error",
@@ -309,14 +299,9 @@ module.exports = defineConfig([{
     },
 }, {
     files: ["**/*.html"],
-
-    languageOptions: {
-        parser: parser,
-    },
-
-    extends: compat.extends("plugin:@html-eslint/recommended"),
-    
+    ...htmlEslint.configs["flat/recommended"],
     rules: {
+        ...htmlEslint.configs["flat/recommended"].rules,
         "indent": "off",
         "no-mixed-spaces-and-tabs": "off",
         "no-trailing-spaces": "off",
@@ -347,4 +332,4 @@ module.exports = defineConfig([{
         "quotes": "off",
         "semi": "off"
     }
-}, globalIgnores(["docs/demos/dist/"])]);
+}]);

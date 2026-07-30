@@ -7,7 +7,7 @@ dayjs.extend(customParseFormat)
  * Use dayjs to parse cell contents for sorting
  */
 export const parseDate = (content: string, format: string) => {
-    let date: number | string
+    let date: number | string | undefined
 
     // Converting to YYYYMMDD ensures we can accurately sort the column numerically
 
